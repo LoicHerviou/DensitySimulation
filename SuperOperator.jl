@@ -2,12 +2,13 @@
 ###MatrixEquivalent of the trace operation###
 #############################################
 """
-    buildTraceMatrixRight(maxLen)
+    buildTraceMatrixRight(maxLen; typed=Float64)
 
-create the matrix that takes the trace on the right-most site of a DM of length maxLen
+Create the matrix that takes the trace on the right-most site of a DM of length maxLen
+typed is the type of the data store in the matrix: for rational arythmetic, choose SymPy.Sym
 """
-function buildTraceMatrixRight(maxLen)
-    trmat=spzeros(2^(2*maxLen), 2^(2*maxLen+2))
+function buildTraceMatrixRight(maxLen; typed=Float64)
+    trmat=spzeros(typed, 2^(2*maxLen), 2^(2*maxLen+2))
     for x in 1:2^maxLen
         for y=1:2^maxLen
             trmat[x+(y-1)*2^maxLen, x+(y-1)*2^(maxLen+1)]=1
@@ -16,14 +17,14 @@ function buildTraceMatrixRight(maxLen)
     end
     return trmat
 end
-
 """
-    buildTraceMatrixLeft(maxLen)
+    buildTraceMatrixLeft(maxLen; typed=Float64)
 
 create the matrix that takes the trace on the left-most site of a DM of length maxLen
+typed is the type of the data store in the matrix: for rational arythmetic, choose SymPy.Sym
 """
-function buildTraceMatrixLeft(maxLen)
-    trmat=spzeros(2^(2*maxLen), 2^(2*maxLen+2))
+function buildTraceMatrixLeft(maxLen; typed=Float64)
+    trmat=spzeros(typed, 2^(2*maxLen), 2^(2*maxLen+2))
     for x in 1:2^maxLen
         for y=1:2^maxLen
             trmat[x+(y-1)*2^maxLen, 2*(x-1)+2*(y-1)*2^(maxLen+1)+1]=1

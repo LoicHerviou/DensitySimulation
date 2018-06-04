@@ -60,6 +60,45 @@ end
 
 
 """
+    buildSingleSiteHamiltonian(hx, hz, maxLen)
+
+Build the single site part of the Hamiltonian for sites 1:maxLen
+Here, special case as only Z field is taken into account
+"""
+function buildSingleSiteHamiltonian(hx, hz, maxLen)
+    dicHam=spzeros(2^maxLen, 2^maxLen)
+    for x=1:2^maxLen
+        dig=2*digits(x-1, 2, maxLen)-1
+        for site=1:maxLen
+            dicHam[x, x]+=hz/2*dig[site]
+        end
+    end
+    return dicHam
+end
+
+
+
+"""
+    buildMultiSiteHamiltonian(hx, hz, maxLen)
+
+Return the multisite part of the Hamiltonian for length 1:maxLen
+Special case here as the X field is taken into account here directly
+"""
+function buildMultiSiteHamiltonian(hx, hz, maxLen)
+    dicHam=spzeros(2^maxLen, 2^maxLen)
+    for x=1:2^maxLen
+        dig=2*digits(x-1, 2, maxLen)-1
+        for site=1:maxLen-1
+            dicHam[x, x-dig[site]*2^(site-1)-dig[site+1]*2^(site)]+=0.25
+        end
+        for site=1:maxLen
+            dicHam[x, x-dig[site]*2^(site-1)]+=hx/2
+        end
+    end
+    return dicHam
+end
+
+"""
     generateInitialState_z(maxLen)
 
 Project the spin 0 on +_z and return all DM of length maxLen containing it
