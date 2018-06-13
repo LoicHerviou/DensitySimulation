@@ -194,9 +194,9 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.01, order=2, 
     ###Choosing global matrixes seem to slow down code by ~1% but is much easier to read. More benchmark to be done later ?
     Traces=initializeTraceMatrices(maxLen);
     if maxLen<7
-        leftApproximation, rightApproximation=buildSpecialLinkProjector(maxLen, Hlink, sparse(sz))
+        leftApproximation, rightApproximation=buildSpecialLinkProjector(maxLen, Hlink, sparse(sx))
     else
-        leftApproximation, rightApproximation=buildSpecialLinkProjector_largeSize(maxLen, Hlink, sparse(sz))
+        leftApproximation, rightApproximation=buildSpecialLinkProjector_largeSize(maxLen, Hlink, sparse(sx))
     end
     ###Initialization of the density operators.
     vectRho=map(x->reshape(x, length(x)), generateInitialState_z(maxLen, ini=ini));  minMatRho=-maxLen+1

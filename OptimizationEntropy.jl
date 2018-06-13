@@ -2,7 +2,7 @@ include("GeneralMethods.jl")
 include("SuperOperator.jl")
 
 
-using SymPy
+#using SymPy
 using FileIO
 #
 # function buildKernels(maxLen, Hcommuting)
@@ -103,6 +103,21 @@ function buildKernels(maxLen, Hcommuting)
     return kernelLeft, kernelRight
 end
 
+function makeGlobalKernel(kernelLeft, kernelRight)
+    ran=rank(full(hcat(kernelLeft, kernelRight)))
+    herm=zeros(Complex128, size(kernelLeft)[1], ran);
+    herm[:, 1:size(kernelLeft)[2]]=kernelLeft
+    count=size(kernelLeft)[2]+1
+    j=1
+    while count<=ran
+        herm[:, count]=kernelRight[:, j]
+        if rank(herm)==count
+            count+=1
+        end
+        j+=1
+    end
+    return sparse(herm)
+end
 
 function generateHermitianKernel(maxLen)
     sz=-Sym[1  0 ; 0 -1];
@@ -116,7 +131,8 @@ end
 
 function mainGeneration(maxLen)
     hermLeft, hermRight=generateHermitianKernel(maxLen)
-    FileIO.save(string("kernelIsing-len-", maxLen, ".jld2"), "len", maxLen, "kernelLeft", hermLeft, "kernelRight", hermRight)
+    hermGlobal=makeGlobalKernel(hermLeft, hermRight)
+    FileIO.save(string("kernelIsing-len-", maxLen, ".jld2"), "len", maxLen, "kernelLeft", hermLeft, "kernelRight", hermRight, "kernelGlobal", hermGlobal)
 end
 
 
@@ -128,8 +144,21 @@ function extractLowerEigenvalue(vect)
 end
 
 
+function improveRho_algo!(rho, kernel, gradient, temprho; de=0.0001, step=100, dx=0.1)
+    for x=1:step
+        target=extractLowerEigenvalue(rho)
+        for j=1:length(gradient)
+            temprho=rho+de*kernel[:, j]
+            gradient[j]=(extractLowerEigenvalue(temprho)-target)/de*dx
+        end
+        for j=1:length(gradient)
+            @. rho=rho+gradient[j]*kernel[:, j]
+        end
+    end
+end
 
-function improveRho!(rho, kernel; de=0.0001, step=100, dx=0.1)
+
+function improveRho_training!(rho, kernel; de=0.0001, step=100, dx=0.1)
     gradient=zeros(size(kernel)[2])
     temprho=similar(rho)
     totalmodif=zeros(size(kernel)[2])
@@ -145,10 +174,3 @@ function improveRho!(rho, kernel; de=0.0001, step=100, dx=0.1)
         end
     end
 end
-
-
-matrho=rand(Complex128, 16, 16); matrho=matrho+matrho';
-rho=reshape(copy(matrho), length(matrho))
-target=extractLowerEigenvalue(rho)
- improveRho!(rho, kernelLeft)
-finished=extractLowerEigenvalue(rho)
