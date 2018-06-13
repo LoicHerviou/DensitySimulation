@@ -130,7 +130,6 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.0001)
     ###Setting up the global trace operators
     Traces=initializeTraceMatrices(maxLen+2);
     TracesSmall=initializeTraceMatrices(maxLen);
-    #if !isdefined(:MatJoin)
     MatJoin=transpose(sparse(vcat(Traces[1, 3]', Traces[2,2]', Traces[3,1]')));
     invMatJoin=sparse(triming.(pinv(full(MatJoin))));
     pseudoIdentity=sparse(triming.(MatJoin*invMatJoin));

@@ -183,7 +183,7 @@ end
 ###################
 
 ###toDo look static arrays ?
-function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.01, order=2)
+function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.01, order=2, ini=1.0)
     #Define Pauli Matrices
     sx=[0 1; 1 0]; sz=-[1  0 ; 0 -1]; sy=[0 -1im; 1im 0]
     tim=0:dt:T
@@ -199,7 +199,7 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.01, order=2)
         leftApproximation, rightApproximation=buildSpecialLinkProjector_largeSize(maxLen, Hlink, sparse(sz))
     end
     ###Initialization of the density operators.
-    vectRho=map(x->reshape(x, length(x)), generateInitialState_z(maxLen));  minMatRho=-maxLen+1
+    vectRho=map(x->reshape(x, length(x)), generateInitialState_z(maxLen, ini=ini));  minMatRho=-maxLen+1
     tempMatrix=[zeros(Complex128, 2^(2*maxLen)), zeros(Complex128, 2^(2*maxLen))]
     if order==1
         vectDRho=similar(vectRho)
@@ -226,7 +226,7 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.01, order=2)
     tim2=0:10*dt:T;
     szObservable=zeros(length(tim2));
     sxObservable=zeros(length(tim2));
-    #test=zeros(length(tim));
+    test=zeros(length(tim));
     ###Last preparations
     tic()
     cnt=0; totaltime=0; cnt2=1;
@@ -270,7 +270,7 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.01, order=2)
                     @. vectRho[l]+= 0.5*vectDRho[l]
                 end
                 minMatRho-=extendZone!(vectDRho, vectDRhoAux, vectRho, Traces)
-            #test[j]=minimum(minimum.(eigvals.(vectRho)))
+            test[j]=minimum(minimum.(real.(eigvals.(map(x->reshape(x, (2^maxLen, 2^maxLen)), vectRho)))))
          elseif order==4
             println("Not yet implemented")
         else
@@ -278,5 +278,32 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.01, order=2)
         end
     end
     toc()
-    return tim2, szObservable, sxObservable#, test
+    return tim2, szObservable, sxObservable, test
 end
+
+#
+# tim, sz, sx, test=main(0.25, -0.525, 100., maxLen=4, dt=0.0001, order=2, ini=0.6)
+# tim2, sz2, sx2, test2=main(0.25, -0.525, 100., maxLen=5, dt=0.0001, order=2, ini=0.6)
+# tim3, sz3, sx3, test3=main(0.25, -0.525, 100., maxLen=6, dt=0.0005, order=2, ini=0.6)
+# tim4, sz4, sx4, test4=main(0.25, -0.525, 100., maxLen=7, dt=0.001, order=2, ini=0.6)
+# timt, szt, sxt, testt=main(0.25, -0.525, 100., maxLen=4, dt=0.0001, order=2)
+# timt2, szt2, sxt2, testt2=main(0.25, -0.525, 100., maxLen=5, dt=0.0001, order=2)
+#
+#
+# figure()
+# plot(log.(abs.(tim)), log.(abs.(sz/2*5)))
+# plot(log.(abs.(tim2)), log.(abs.(sz2/2*5)))
+# plot(log.(abs.(tim3)), log.(abs.(sz3/2*5)))
+# plot(log.(abs.(tim4)), log.(abs.(sz4/2*5)))
+# plot(log.(abs.(timt)), log.(abs.(szt/2)), ":")
+# plot(log.(abs.(timt2)), log.(abs.(szt2/2)), ":")
+# legend(["l=4", "l=5", "l=6", "l=7", "l=4 ori", "l=5 ori"])
+#
+# figure()
+# plot(test)
+# plot(test2)
+# plot(test3)
+# plot(test4)
+# plot(testt)
+# plot(testt2)
+# legend(["l=4", "l=5", "l=6", "l=7", "l=4 ori", "l=5 ori"])

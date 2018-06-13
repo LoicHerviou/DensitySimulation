@@ -238,7 +238,7 @@ end
 ###################
 ###Main function###
 ###################
-function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.0001)
+function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.0001, ini=1.0)
     #Define Pauli Matrices
     sx=[0 1; 1 0]; sz=-[1  0 ; 0 -1]; sy=[0 -1im; 1im 0]
     tim=dt:dt:T
@@ -272,13 +272,13 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.0001)
     ###For memory efficience
     tempMatrix=reshape(similar(extendedRho_e[1]), (size(ULeft)[1],size(ULeft)[1]) )
 
-
+    test=zeros(length(tim));
     ###Observables###
     tim2=0:100*dt:T;
     szObservable=zeros((length(tim)+99)÷100+1);
     sxObservable=zeros((length(tim)+99)÷100+1);
     #initializeState
-    matRho=map(x->reshape(x, length(x)), generateInitialState_z(maxLen));
+    matRho=map(x->reshape(x, length(x)), generateInitialState_z(maxLen, ini=ini));
     minMatRho=-maxLen+1; maxMatRho=maxLen-1
     if mod(minMatRho, 2)==0
         minTER_e=minMatRho; minTER_o=minMatRho-1
@@ -318,11 +318,38 @@ function main(hx::Float64, hz::Float64, T::Float64; maxLen=3, dt=0.0001)
         massReduce!(matRho, extendedRho_e, minMatRho, indices_e[1], Traces)
         minMatRho, maxMatRho=extendZone!(matRho, minMatRho, maxMatRho, extendedRho_e, indices_e, extendedRho_o, indices_o, Traces, TracesSmall)
         ##Measure sz
+        test[j]=minimum(minimum.(real.(eigvals.(map(x->reshape(x, (2^maxLen, 2^maxLen)), matRho)))))
     end
     toc()
-    return tim2, szObservable, sxObservable
+    return tim2, szObservable, sxObservable, test
 end
 
 
 ###ToDo: remplacer isposdef par issemiposdef
 ###ToDo: optimize matrix product in joinDensity ? Have an explicit function compiled probably.
+
+tim, sz, sx, test=main(0.25, -0.525, 100., maxLen=4, dt=0.0001, ini=0.6)
+tim2, sz2, sx2, test2=main(0.25, -0.525, 100., maxLen=5, dt=0.0001, ini=0.6)
+tim3, sz3, sx3, test3=main(0.25, -0.525, 100., maxLen=6, dt=0.0005, ini=0.6)
+tim4, sz4, sx4, test4=main(0.25, -0.525, 100., maxLen=7, dt=0.001, ini=0.6)
+timt, szt, sxt, testt=main(0.25, -0.525, 100., maxLen=4, dt=0.0001)
+timt2, szt2, sxt2, testt2=main(0.25, -0.525, 100., maxLen=5, dt=0.0001)
+
+
+figure()
+plot(log.(abs.(tim)), log.(abs.(sz/2*5)))
+plot(log.(abs.(tim2)), log.(abs.(sz2/2*5)))
+plot(log.(abs.(tim3)), log.(abs.(sz3/2*5)))
+plot(log.(abs.(tim4)), log.(abs.(sz4/2*5)))
+plot(log.(abs.(timt)), log.(abs.(szt/2)), ":")
+plot(log.(abs.(timt2)), log.(abs.(szt2/2)), ":")
+legend(["l=4", "l=5", "l=6", "l=7", "l=4 ori", "l=5 ori"])
+
+figure()
+plot(test)
+plot(test2)
+plot(test3)
+plot(test4)
+plot(testt)
+plot(testt2)
+legend(["l=4", "l=5", "l=6", "l=7", "l=4 ori", "l=5 ori"])

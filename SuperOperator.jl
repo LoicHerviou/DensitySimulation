@@ -335,7 +335,7 @@ end
 Return the sparse matrix representing operator acting on the left on a DM written as a vector
 """
 function buildSuperOperatorLeft(operator)
-    return kron(speye(size(operator)[1]), operator)''
+    return kron(speye(typeof(operator[1]), size(operator)[1]), operator)''
 end
 
 """
@@ -344,7 +344,7 @@ end
 Return the sparse matrix representing operator acting on the right on a DM written as a vector
 """
 function buildSuperOperatorRight(operator)
-    return kron(transpose(operator), speye(size(operator)[1]))''
+    return kron(transpose(operator), speye(typeof(operator[1]), size(operator)[1]))''
 end
 
 """

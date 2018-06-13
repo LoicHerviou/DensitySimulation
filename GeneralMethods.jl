@@ -40,7 +40,7 @@ end
 """
     entropy(eigen)
 
-From a list of eigenvalues, return the vN entropy. eigen is supposed real and between 0 and 1
+From a list of svs, return the vN entropy. sv should be real and between 0 and 1
 """
 @inline function entropy(eigen)
     entr=0.

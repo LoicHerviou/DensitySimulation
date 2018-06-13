@@ -103,9 +103,9 @@ end
 
 Project the spin 0 on +_z and return all DM of length maxLen containing it
 """
-function generateInitialState_z(maxLen)
+function generateInitialState_z(maxLen; ini=1.0)
     listRho=Array{Array{Complex128}}(maxLen)
-    localRho=[0.0+0.0im 0.0; 0.0 1.0]
+    localRho=[1.0-ini+0.0im 0.0; 0.0 ini]
     for l in 1:maxLen
         listRho[l]=kron(kron(eye(Complex128, 2^(l-1)),  localRho), eye(Complex128, 2^(maxLen-l)))/2^(maxLen-1)
     end
@@ -123,5 +123,21 @@ function generateInitialState_x(maxLen)
     for l in 1:maxLen
         listRho[l]=kron(kron(eye(Complex128, 2^(l-1)),  localRho), eye(Complex128, 2^(maxLen-l)))/2^(maxLen-1)
     end
+    return listRho
+end
+
+
+
+
+
+"""
+    generateInitialState_z_center(maxLen)
+
+Project the spin 0 on +_z and return the DM of length maxLen where it is centered at maxLen÷2 +1
+"""
+function generateInitialState_z_center(maxLen)
+    localRho=[0.0+0.0im 0.0; 0.0 1.0]
+    len=(maxLen÷2)
+    listRho=kron(kron(eye(Complex128, 2^(len)),  localRho), eye(Complex128, 2^(maxLen-len-1)))/2^(maxLen-1)
     return listRho
 end
